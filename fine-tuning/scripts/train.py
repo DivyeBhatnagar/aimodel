@@ -21,7 +21,8 @@ print("🚀 CodePilot Fine-Tuning Script")
 print("=" * 60)
 
 # Configuration
-MODEL_NAME = "meta-llama/Meta-Llama-3-8B"  # or use local path
+# Using Mistral-7B (open, no auth required) instead of LLaMA 3
+MODEL_NAME = "mistralai/Mistral-7B-v0.1"  # Open model, no authentication needed
 OUTPUT_DIR = "./models/codepilot-custom"
 DATA_FILE = "./data/training_data.json"
 
@@ -63,10 +64,18 @@ tokenizer.pad_token = tokenizer.eos_token
 tokenizer.padding_side = "right"
 
 # Load model with 4-bit quantization for efficiency
+from transformers import BitsAndBytesConfig
+
+bnb_config = BitsAndBytesConfig(
+    load_in_4bit=True,
+    bnb_4bit_quant_type="nf4",
+    bnb_4bit_compute_dtype=torch.float16,
+    bnb_4bit_use_double_quant=True,
+)
+
 model = AutoModelForCausalLM.from_pretrained(
     MODEL_NAME,
-    load_in_4bit=True,
-    torch_dtype=torch.float16,
+    quantization_config=bnb_config,
     device_map="auto",
 )
 
